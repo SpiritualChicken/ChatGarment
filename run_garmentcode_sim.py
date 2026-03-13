@@ -73,13 +73,23 @@ elif args.json_spec_file:
     garment_json_paths = [args.json_spec_file]
 
 print(len(garment_json_paths))
+failed = []
 for json_spec_file in garment_json_paths:
     print(json_spec_file)
     json_spec_file = json_spec_file.replace('validate_garment', 'valid_garment')
     saved_folder = os.path.dirname(json_spec_file)
-    run_simultion_warp(
-            json_spec_file,
-            'assets/Sim_props/default_sim_props.yaml',
-            saved_folder,
-            easy_texture_path=args.easy_texture_path
-        )
+    try:
+        run_simultion_warp(
+                json_spec_file,
+                'assets/Sim_props/default_sim_props.yaml',
+                saved_folder,
+                easy_texture_path=args.easy_texture_path
+            )
+    except Exception as e:
+        print(f"FAILED: {json_spec_file}: {e}")
+        failed.append(json_spec_file)
+
+if failed:
+    print(f"\n{len(failed)} garments failed:")
+    for f in failed:
+        print(f"  {f}")
