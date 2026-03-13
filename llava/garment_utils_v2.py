@@ -17,7 +17,7 @@ import shutil
 import subprocess
 from collections import OrderedDict
 
-sys.path.insert(1, '/is/cluster/fast/sbian/github/GarmentCodeV2/')
+sys.path.insert(1, '/workspace/GarmentCodeRC/')
 
 # Custom
 from assets.garment_programs.meta_garment import MetaGarment

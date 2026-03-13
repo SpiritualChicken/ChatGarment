@@ -1,3 +1,4 @@
+print("[DEBUG] Script starting...", flush=True)
 import argparse
 import copy
 import os
@@ -159,11 +160,13 @@ def translate_args(model_args, data_args, training_args):
 def main(args):
     attn_implementation = 'flash_attention_2'
     global local_rank
+    print("[DEBUG] main() called", flush=True)
 
     parser = transformers.HfArgumentParser(
         (ModelArguments, DataArguments, TrainingArguments))
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     local_rank = training_args.local_rank
+    print(f"[DEBUG] local_rank={local_rank}", flush=True)
     compute_dtype = (torch.float16 if training_args.fp16 else (torch.bfloat16 if training_args.bf16 else torch.float32))
 
     args = translate_args(model_args, data_args, training_args)
@@ -175,7 +178,7 @@ def main(args):
     # writer = None
     if local_rank == 0:
         os.makedirs(args.log_dir, exist_ok=True)
-        writer = SummaryWriter(args.log_dir)
+        writer = None  # Disabled SummaryWriter to avoid disk quota issues
     else:
         writer = None
 
@@ -194,6 +197,7 @@ def main(args):
     num_added_tokens = tokenizer.add_tokens("[SEG]")
     args.seg_token_idx = tokenizer("[SEG]", add_special_tokens=False).input_ids[-1]
 
+    print("[DEBUG] Loading model...", flush=True)
     model = GarmentGPTFloat50ForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         cache_dir=training_args.cache_dir,
@@ -289,6 +293,7 @@ def main(args):
     )
 
     ########################################################################################
+    print("[DEBUG] Loading pretrained weights...", flush=True)
     resume_path = 'checkpoints/try_7b_lr1e_4_v3_garmentcontrol_4h100_v4_final/pytorch_model.bin'
     state_dict = torch.load(resume_path, map_location="cpu")
     model.load_state_dict(state_dict, strict=True)
@@ -307,6 +312,7 @@ def main(args):
     if not os.path.exists(parent_folder):
         os.makedirs(parent_folder)
 
+    print("[DEBUG] Weights loaded, starting inference...", flush=True)
     print('val_dataset', len(val_dataset))
     len_val_dataset = len(val_dataset)
     # model.eval()
@@ -400,5 +406,6 @@ def main(args):
 
         
 if __name__ == "__main__":
+    print("[DEBUG] __main__ reached, calling main()", flush=True)
     main(sys.argv[1:])         
 
